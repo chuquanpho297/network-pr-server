@@ -24,7 +24,7 @@ int RoomModel::createRoom(const CreateRoomDto &dto)
     }
     delete checkRes;
 
-    string sql = "INSERT INTO room(name, owner_id) VALUES ('" + dto.roomName + "'," + to_string(dto.userId) + ");";
+    string sql = "INSERT INTO room(name, owner_id, start_time, end_time) VALUES ('" + dto.roomName + "'," + to_string(dto.userId) + ",'" + dto.startTime + "','" + dto.endTime + "');";
     bool res = mysqlOps->stmt->executeUpdate(sql);
     cout << "SQL query: " << sql << '\n';
     if (res)
@@ -36,7 +36,7 @@ int RoomModel::createRoom(const CreateRoomDto &dto)
 vector<Room> RoomModel::getRooms(optional<int> userId, optional<string> condition)
 {
     vector<Room> rooms;
-    string sql = "SELECT r.room_id, r.name, r.owner_id, u.name AS owner_name, "
+    string sql = "SELECT r.room_id, r.name, r.owner_id, u.name AS owner_name, r.start_time, r.end_time, "
                  "(SELECT COUNT(*) FROM item i WHERE i.room_id = r.room_id) AS totalItems, "
                  "(SELECT COUNT(*) FROM user u WHERE u.room_id = r.room_id) AS totalParticipants "
                  "FROM room r "
@@ -106,6 +106,8 @@ Room RoomModel::parseResultSet(sql::ResultSet *res)
     room.ownerName = res->getString("owner_name");
     room.totalItems = res->getInt("totalItems");
     room.totalParticipants = res->getInt("totalParticipants");
+    room.startTime = res->getString("start_time");
+    room.endTime = res->getString("end_time");
 
     return room;
 }

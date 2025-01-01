@@ -14,6 +14,8 @@ struct CreateRoomDto
 {
     int userId;
     string roomName;
+    string startTime;
+    string endTime;
 };
 
 class RoomHandler : public Handler

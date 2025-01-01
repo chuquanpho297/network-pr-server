@@ -16,8 +16,6 @@ struct CreateItemDto
 {
     string itemName;
     optional<double> buyNowPrice;
-    string startTime;
-    string endTime;
     int ownerId;
 };
 
@@ -33,8 +31,6 @@ struct SearchItemDto
 
 struct UpdateItemDto
 {
-    optional<string> startTime;
-    optional<string> endTime;
     optional<double> buyNowPrice;
     int userId;
     int itemId;

@@ -18,6 +18,8 @@ struct Room
     int totalParticipants;
     int ownerId;
     string ownerName;
+    string startTime;
+    string endTime;
 };
 
 class RoomModel

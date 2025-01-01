@@ -72,11 +72,11 @@ int ItemModel::createItem(const CreateItemDto &request)
     string sql;
     if (request.buyNowPrice.has_value())
     {
-        sql = "INSERT INTO item(name, buy_now_price, owner_id, start_time, end_time) VALUES ('" + request.itemName + "'," + to_string(request.buyNowPrice.value()) + "," + to_string(request.ownerId) + ",'" + request.startTime + "','" + request.endTime + "');";
+        sql = "INSERT INTO item(name, buy_now_price, owner_id) VALUES ('" + request.itemName + "'," + to_string(request.buyNowPrice.value()) + "," + to_string(request.ownerId) + ");";
     }
     else
     {
-        sql = "INSERT INTO item(name, owner_id, start_time, end_time) VALUES ('" + request.itemName + "'," + to_string(request.ownerId) + ",'" + request.startTime + "','" + request.endTime + "');";
+        sql = "INSERT INTO item(name, owner_id) VALUES ('" + request.itemName + "'," + to_string(request.ownerId) + ");";
     }
 
     cout << "SQL query: " << sql << '\n';
@@ -135,16 +135,6 @@ int ItemModel::updateItem(const UpdateItemDto &request)
 {
     string sql = "UPDATE item SET ";
 
-    if (request.startTime.has_value())
-    {
-        sql += "start_time = '" + request.startTime.value() + "' ,";
-    }
-
-    if (request.endTime.has_value())
-    {
-        sql += "end_time = '" + request.endTime.value() + "' ,";
-    }
-
     if (request.buyNowPrice.has_value())
     {
         sql += "buy_now_price = " + to_string(request.buyNowPrice.value()) + " ,";
@@ -178,8 +168,24 @@ Item ItemModel::parseResultSet(sql::ResultSet *res)
     Item item;
     item.itemId = res->getInt("item_id");
     item.name = res->getString("name");
-    item.startTime = res->getString("start_time");
-    item.endTime = res->getString("end_time");
+
+    if (res->isNull("start_time"))
+    {
+        item.startTime = std::nullopt;
+    }
+    else
+    {
+        item.startTime = res->getString("start_time");
+    }
+
+    if (res->isNull("end_time"))
+    {
+        item.endTime = std::nullopt;
+    }
+    else
+    {
+        item.endTime = res->getString("end_time");
+    }
     item.currentPrice = res->getDouble("current_price");
     item.state = res->getString("state");
     item.buyNowPrice = res->getDouble("buy_now_price");

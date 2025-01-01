@@ -16,8 +16,8 @@ struct Item
 {
     int itemId;
     string name;
-    string startTime;
-    string endTime;
+    optional<string> startTime;
+    optional<string> endTime;
     double currentPrice;
     string state;
     double buyNowPrice;

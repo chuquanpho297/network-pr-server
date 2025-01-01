@@ -16,7 +16,9 @@ CREATE TABLE user (
 CREATE TABLE room (
     room_id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
-    owner_id INT NOT NULL
+    owner_id INT NOT NULL,
+    start_time DATETIME,
+    end_time DATETIME,
 );
 
 -- Create the Item table
@@ -25,15 +27,15 @@ CREATE TABLE item (
     name VARCHAR(255) NOT NULL,
     start_time DATETIME,
     end_time DATETIME,
-    current_price DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
+    current_price DEFAULT 0,
     state ENUM(
         "created",
         'waiting',
         'active',
         'sold'
     ) NOT NULL DEFAULT 'created',
-    buy_now_price DECIMAL(10, 2) NOT NULL,
-    owner_id INT NOT NULL,  
+    buy_now_price NOT NULL,
+    owner_id INT NOT NULL,
     room_id INT
 );
 
@@ -43,7 +45,7 @@ CREATE TABLE log (
     user_id INT NOT NULL,
     item_id INT NOT NULL,
     room_id INT NOT NULL,
-    bid_price DECIMAL(10, 2) NOT NULL,
+    bid_price NOT NULL,
     time DATETIME NOT NULL,
     status ENUM('success', 'fail') NOT NULL
 );

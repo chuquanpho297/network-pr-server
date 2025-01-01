@@ -158,41 +158,29 @@ void ItemHandler::searchItem(char *payload)
 
 void ItemHandler::updateItem(char *payload)
 {
-    char startTime[20], endTime[20], response[50], buyNowPrice[20];
+    char response[50], buyNowPrice[20];
     int userId, itemId;
     try
     {
-        int noargs = sscanf(payload, "%d\n%d\n%s\n%s\n%s\n", &userId, &itemId, buyNowPrice, startTime, endTime);
-        if (noargs == 5)
+        int noargs = sscanf(payload, "%d\n%d\n%s\n", &userId, &itemId, buyNowPrice);
+        if (noargs == 3)
         {
 
-            optional<string> startTimeOpt;
-            optional<string> endTimeOpt;
             optional<double> buyNowPriceOpt;
-
-            if (strcmp(startTime, NULL_TAG) != 0)
-            {
-                startTimeOpt = optional<string>(startTime);
-            }
-
-            if (strcmp(endTime, NULL_TAG) != 0)
-            {
-                endTimeOpt = optional<string>(endTime);
-            }
 
             if (strcmp(buyNowPrice, NULL_TAG) != 0)
             {
                 buyNowPriceOpt = optional<double>(stod(buyNowPrice));
             }
 
-            int result = itemModel.updateItem(UpdateItemDto{startTimeOpt, endTimeOpt, buyNowPriceOpt, userId, itemId});
+            int result = itemModel.updateItem(UpdateItemDto{buyNowPriceOpt, userId, itemId});
 
             sprintf(response, "%d\n%d\n", UPDATE_ITEM_RES, result);
             log_send_msg(response);
         }
         else
         {
-            printf("[-]Invalid search item by name protocol! %s\n", payload);
+            printf("[-]Invalid update item by name protocol! %s\n", payload);
             sprintf(response, "%d\n%d\n", UPDATE_ITEM_RES, FAIL);
             log_send_msg(response);
         }
@@ -234,17 +222,17 @@ void ItemHandler::deleteItem(char *buf)
 void ItemHandler::createItem(char *buf)
 {
 
-    char itemName[MAX_ROOM_NAME], response[50], startTime[20], endTime[20];
+    char itemName[MAX_ROOM_NAME], response[50];
     int ownerId;
     double buyNowPrice;
     try
     {
-        int noargs = sscanf(buf, "%s\n%lf\n%s\n%s\n%d\n", itemName, &buyNowPrice, startTime, endTime, &ownerId);
+        int noargs = sscanf(buf, "%s\n%lf\n%d\n", itemName, &buyNowPrice, &ownerId);
 
-        if (noargs == 5)
+        if (noargs == 3)
         {
 
-            CreateItemDto request = {itemName, buyNowPrice, startTime, endTime, ownerId};
+            CreateItemDto request = {itemName, buyNowPrice, ownerId};
             int result = itemModel.createItem(request);
             sprintf(response, "%d\n%d\n", CREATE_ITEM_RES, result);
         }
@@ -273,7 +261,9 @@ void ItemHandler::sendItemList(vector<Item> items)
         string encodedItemName = encodeSpace(item.name);
         string encodedOwnerName = encodeSpace(item.ownerName);
         string encodedRoomName = encodeSpace(item.roomName.value_or("NULL"));
-        sprintf(sendline, "%d %s %s %s %f %s %f %d %s %s %s\n", item.itemId, encodedItemName.c_str(), convertDateTimeFormat(item.startTime).c_str(), convertDateTimeFormat(item.endTime).c_str(), item.currentPrice, item.state.c_str(), item.buyNowPrice, item.ownerId, item.roomId.has_value() ? to_string(item.roomId.value()).c_str() : "NULL", encodedRoomName.c_str(), encodedOwnerName.c_str());
+        string convertedStartTime = item.startTime.has_value() ? convertDateTimeFormat(item.startTime.value()) : "NULL";
+        string convertedEndTime = item.endTime.has_value() ? convertDateTimeFormat(item.endTime.value()) : "NULL";
+        sprintf(sendline, "%d %s %s %s %f %s %f %d %s %s %s\n", item.itemId, encodedItemName.c_str(), convertedStartTime.c_str(), convertedEndTime.c_str(), item.currentPrice, item.state.c_str(), item.buyNowPrice, item.ownerId, item.roomId.has_value() ? to_string(item.roomId.value()).c_str() : "NULL", encodedRoomName.c_str(), encodedOwnerName.c_str());
         log_send_msg(sendline);
         memset(sendline, 0, MAXLINE);
     }

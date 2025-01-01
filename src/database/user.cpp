@@ -29,7 +29,7 @@ int UserModel::registerUser(string username, string password)
         return 0; // FAIL
 }
 
-int UserModel::login(string username, string password, int &userId, int &roomId)
+int UserModel::login(string username, string password, int &userId, optional<int> &roomId)
 {
     // Verify username and password
     string sql = "SELECT user_id, room_id FROM user WHERE name = '" + username + "' AND password = '" + password + "';";
@@ -38,7 +38,14 @@ int UserModel::login(string username, string password, int &userId, int &roomId)
     if (res && res->next())
     {
         userId = res->getInt("user_id");
-        roomId = res->getInt("room_id");
+        if (res->isNull("room_id"))
+        {
+            roomId = std::nullopt;
+        }
+        else
+        {
+            roomId = optional<int>(res->getInt("room_id"));
+        }
         delete res;
 
         return 1; // SUCCESS

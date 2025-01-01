@@ -38,11 +38,12 @@ void UserHandler::login(char *payload)
         int noargs = sscanf(payload, "%s\n%s\n", username, password);
         if (noargs == 2)
         {
-            int userId, roomId;
+            int userId;
+            optional<int> roomId;
             int result = userModel.login(username, password, userId, roomId);
             if (result == SUCCESS)
             {
-                sprintf(response, "%d\n%d\n%d %d\n", LOGIN_RES, result, userId, roomId);
+                sprintf(response, "%d\n%d\n%d %s\n", LOGIN_RES, result, userId, roomId.has_value() ? to_string(roomId.value()).c_str() : "NULL");
             }
             else
             {

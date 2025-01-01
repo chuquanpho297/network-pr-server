@@ -15,10 +15,10 @@ void RoomHandler::createRoom(char *payload)
     int userId;
     try
     {
-        int noargs = sscanf(payload, "%d\n%s\n", &userId, roomName);
-        if (noargs == 2)
+        int noargs = sscanf(payload, "%d\n%s\n%s\n%s\n", &userId, roomName, startTime, endTime);
+        if (noargs == 4)
         {
-            int result = roomModel.createRoom(CreateRoomDto{userId, roomName});
+            int result = roomModel.createRoom(CreateRoomDto{userId, roomName, startTime, endTime});
             sprintf(response, "%d\n%d\n", CREATE_ROOM_RES, result);
         }
         else
@@ -40,7 +40,7 @@ void RoomHandler::viewRooms()
     char response[50];
     try
     {
-        vector<Room> rooms = roomModel.getRooms(optional<int>(), optional<string>());
+        vector<Room> rooms = roomModel.getRooms(optional<int>(), optional<string>(" AND r.end_time > NOW()"));
         sprintf(response, "%d\n%d\n", VIEW_ROOMS_RES, SUCCESS);
         log_send_msg(response);
         sendRoomList(rooms);
@@ -118,16 +118,18 @@ void RoomHandler::sendRoomList(vector<Room> rooms)
         Room room = rooms[i];
         string encodedRoomName = encodeSpace(room.name);
         string encodedOwnerName = encodeSpace(room.ownerName);
-        printf("[+]Room name: %s (encoded: %s)\n", room.name.c_str(), encodedRoomName.c_str());
-        printf("[+]Owner name: %s (encoded: %s)\n", room.ownerName.c_str(), encodedOwnerName.c_str());
+        string convertedStartTime = convertDateTimeFormat(room.startTime);
+        string convertedEndTime = convertDateTimeFormat(room.endTime);
 
-        sprintf(sendline, "%d %s %d %s %d %d\n",
+        sprintf(sendline, "%d %s %d %s %d %d %s %s\n",
                 room.roomId,
                 encodedRoomName.c_str(),
                 room.ownerId,
                 encodedOwnerName.c_str(),
                 room.totalItems,
-                room.totalParticipants);
+                room.totalParticipants,
+                convertedStartTime.c_str(),
+                convertedEndTime.c_str());
         log_send_msg(sendline);
         memset(sendline, 0, MAXLINE);
     }

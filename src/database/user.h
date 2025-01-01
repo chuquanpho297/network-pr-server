@@ -3,6 +3,7 @@
 
 #include <string>
 #include "mysql_connector.h"
+#include <optional>
 
 using namespace std;
 
@@ -24,7 +25,7 @@ public:
     }
 
     int registerUser(string username, string password);
-    int login(string username, string password, int &userId, int &roomId);
+    int login(string username, string password, int &userId, optional<int> &roomId);
     int logout(int userId);
 
 private:
