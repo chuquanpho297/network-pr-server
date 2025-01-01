@@ -139,7 +139,7 @@ int main(int argc, char **argv)
                 }
                 case JOIN_ROOM_REQ:
                 {
-                    roomHandler.joinRoom(payload, cliRoomId);
+                    roomHandler.joinRoom(payload);
                     break;
                 }
                 case VIEW_ALL_ITEMS_REQ:
@@ -175,6 +175,51 @@ int main(int argc, char **argv)
                 case DELETE_ITEM_REQ:
                 {
                     itemHandler.deleteItem(payload);
+                    break;
+                }
+                case DELETE_ITEM_IN_ROOM_RES:
+                {
+                    roomHandler.deleteItemFromRoom(payload);
+                    break;
+                }
+                case PLACE_BID_REQ:
+                {
+                    roomHandler.placeBid(payload);
+                    break;
+                }
+
+                // buy now request
+                case BUY_NOW_REQ:
+                {
+                    roomHandler.buyNow(payload);
+                    break;
+                }
+                // funciton place item
+                case PLACE_ITEM_IN_ROOM_REQ:
+                {
+                    roomHandler.placeItemInRoom(payload);
+                    break;
+                }
+
+                case ACCEPT_REJECT_ITEM_REQ:
+                {
+                    roomHandler.acceptRejectItem(payload);
+                    break;
+                }
+
+                case VIEW_ROOM_LOG_REQ:
+                {
+                    roomHandler.viewRoomLog(payload);
+                    break;
+                }
+                case VIEW_USER_LOG_REQ:
+                {
+                    roomHandler.viewUserLog(payload);
+                    break;
+                }
+                case LEAVE_ROOM_REQ:
+                {
+                    roomHandler.leaveRoom(payload);
                     break;
                 }
                 default:

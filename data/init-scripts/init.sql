@@ -56,6 +56,7 @@ CREATE TABLE room_log (
     item_id INT NOT NULL,
     room_id INT NOT NULL,
     status ENUM('pending', 'accepted', 'rejected') NOT NULL DEFAULT 'pending',
+    time DATETIME NOT NULL
 );
 
 -- Add Foreign Key Constraints
