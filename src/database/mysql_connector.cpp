@@ -22,6 +22,10 @@ bool MySQLOperations::connect(const std::string &ipAddress, const std::string &u
         conn = driver->connect(ipAddress, username, password);
         conn->setSchema(database);
         stmt = conn->createStatement();
+
+        // Set the time zone
+        stmt->execute("SET time_zone = '+07:00';");
+
         return true;
     }
     catch (sql::SQLException &e)

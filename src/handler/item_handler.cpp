@@ -58,12 +58,18 @@ void ItemHandler::viewOwnedItems(char *payload)
 {
     char response[50];
     int userId;
+    int checkIsPlaced;
     try
     {
-        int noargs = sscanf(payload, "%d\n", &userId);
-        if (noargs == 1)
+        int noargs = sscanf(payload, "%d\n%d\n", &userId, &checkIsPlaced);
+        if (noargs == 2)
         {
-            vector<Item> items = itemModel.getItems(optional<string>(" AND i.owner_id = " + to_string(userId)));
+            string query = " AND i.owner_id = " + to_string(userId);
+            if (checkIsPlaced == 1)
+            {
+                query += " AND (SELECT COUNT(*) FROM room_log rl WHERE rl.item_id = i.item_id) = 0";
+            }
+            vector<Item> items = itemModel.getItems(optional<string>(query));
             sprintf(response, "%d\n%d\n", VIEW_OWNED_ITEMS_RES, SUCCESS);
             log_send_msg(response);
             sendItemList(items);

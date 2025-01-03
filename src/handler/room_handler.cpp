@@ -275,7 +275,7 @@ void RoomHandler::deleteItemFromRoom(char *payload)
     try
     {
         int noargs = sscanf(payload, "%d\n%d\n%d\n", &userId, &itemId, &roomId);
-        if (noargs == 2)
+        if (noargs == 3)
         {
             int result = roomModel.deleteItemFromRoom(userId, itemId, roomId);
             sprintf(response, "%d\n%d\n", DELETE_ITEM_IN_ROOM_REQ, result);

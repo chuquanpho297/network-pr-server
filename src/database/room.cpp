@@ -198,6 +198,18 @@ int RoomModel::placeItemInRoom(int userId, int itemId, int roomId)
         return 0; // Fail
     }
     delete checkRes;
+
+    // check if this room is still waiting for items
+    checkSql = "SELECT 1 FROM room WHERE room.start_time > NOW() AND room_id = " + to_string(roomId) + ";";
+    cout << "SQL query: " << checkSql << '\n';
+    checkRes = mysqlOps->stmt->executeQuery(checkSql);
+    if (!checkRes || !checkRes->next())
+    {
+        cout << "[-]Room is not waiting for items." << endl;
+        delete checkRes;
+        return 0; // Fail
+    }
+
     string insertQuery = "INSERT INTO room_log (item_id, room_id, status) VALUES (" +
                          to_string(itemId) + ", " + to_string(roomId) + ", 'pending');";
     int success = mysqlOps->stmt->executeUpdate(insertQuery);
@@ -208,7 +220,7 @@ int RoomModel::placeItemInRoom(int userId, int itemId, int roomId)
 int RoomModel::acceptRejectItem(int itemId, int roomId, int status)
 {
     string checkQuery = "SELECT 1 FROM room_log WHERE item_id = " + to_string(itemId) +
-                        " AND room_id = " + to_string(roomId) + " AND status = 'pending';";
+                        " AND room_id = " + to_string(roomId) + " AND status = 'pending'" + " AND room_log.time < (SELECT start_time FROM room WHERE room_id = " + to_string(roomId) + ");";
     cout << "SQL query: " << checkQuery << '\n';
     sql::ResultSet *checkRes = mysqlOps->stmt->executeQuery(checkQuery);
     if (!checkRes || !checkRes->next())
@@ -223,6 +235,43 @@ int RoomModel::acceptRejectItem(int itemId, int roomId, int status)
                          to_string(itemId) + " AND room_id = " + to_string(roomId) + ";";
     cout << "SQL query: " << updateQuery << '\n';
     bool success = mysqlOps->stmt->executeUpdate(updateQuery) > 0;
+
+    if (success == 0)
+    {
+        return 0;
+    }
+
+    if (status == 1)
+    {
+        // count item in room
+        string countQuery = "SELECT COUNT(*) AS total FROM item WHERE room_id = " + to_string(roomId) + ";";
+        cout << "SQL query: " << countQuery << '\n';
+        sql::ResultSet *countRes = mysqlOps->stmt->executeQuery(countQuery);
+        if (!countRes || !countRes->next())
+        {
+            cout << "[-]Failed to count items in room." << endl;
+            delete countRes;
+            return 0;
+        }
+        int total = countRes->getInt("total");
+        if (total > 5)
+        {
+            return 0;
+        }
+        // add for me how to start time of time = room.start_time + count * 10 minutes, end time = start time + 5 minutes
+        string updateItemQuery = "UPDATE item SET room_id = " + to_string(roomId) +
+                                 ", start_time = DATE_ADD((SELECT start_time FROM room WHERE room_id = " +
+                                 to_string(roomId) + "), INTERVAL " +
+                                 to_string(total * 10) + " MINUTE), end_time = DATE_ADD((SELECT start_time FROM room WHERE room_id = " +
+                                 to_string(roomId) + "), INTERVAL " + to_string(total * 10 + 5) +
+                                 " MINUTE)" +
+                                 ", state = 'waiting'" +
+                                 " WHERE item_id = " +
+                                 to_string(itemId) + ";";
+        cout << "SQL query: " << updateItemQuery << '\n';
+        success = mysqlOps->stmt->executeUpdate(updateItemQuery) > 0;
+    }
+
     return success ? 1 : 0;
 }
 
@@ -285,8 +334,8 @@ vector<UserLog> RoomModel::getUserLog(int roomId, int itemId)
 
 int RoomModel::deleteItemFromRoom(int userId, int itemId, int roomId)
 {
-    // check if the user is the owner of the item or owner of the room
-    string checkSql = "SELECT 1 FROM item WHERE item_id = " + to_string(itemId) + " AND owner_id = " + to_string(userId) + ";";
+    // check if the user is the owner of the item or owner of the room or state of the item is waiting
+    string checkSql = "SELECT 1 FROM item WHERE item_id = " + to_string(itemId) + " AND owner_id = " + to_string(userId) + " AND state = 'waiting';";
     cout << "SQL query: " << checkSql << '\n';
     sql::ResultSet *checkRes = mysqlOps->stmt->executeQuery(checkSql);
     if (!checkRes || !checkRes->next())
@@ -295,17 +344,19 @@ int RoomModel::deleteItemFromRoom(int userId, int itemId, int roomId)
         delete checkRes;
         return 0; // Fail
     }
-    delete checkRes;
 
     checkSql = "SELECT 1 FROM room WHERE room_id = " + to_string(roomId) + " AND owner_id = " + to_string(userId) + ";";
+    cout << "SQL query: " << checkSql << '\n';
+    checkRes = mysqlOps->stmt->executeQuery(checkSql);
     if (!checkRes || !checkRes->next())
     {
         cout << "[-]Room does not exist or is not owned by the user." << endl;
         delete checkRes;
         return 0; // Fail
     }
+    delete checkRes;
 
-    string updateQuery = "UPDATE item SET state = 'created' AND room_id = NULL WHERE item_id = " + to_string(itemId) + " AND room_id = " + to_string(roomId) + ";";
+    string updateQuery = "UPDATE item SET state = 'created', room_id = NULL, start_time = NULL, end_time = NULL WHERE item_id = " + to_string(itemId) + " AND room_id = " + to_string(roomId) + ";";
     cout << "SQL query: " << updateQuery << '\n';
     bool res = mysqlOps->stmt->executeUpdate(updateQuery);
     return res ? 1 : 0;

@@ -59,11 +59,12 @@ int UserModel::login(string username, string password, int &userId, optional<int
 
 int UserModel::logout(int userId)
 {
-    string sql = "UPDATE user SET loggin = 0 WHERE user_id = " + to_string(userId) + ";";
-    cout << "SQL query: " << sql << '\n';
-    bool res = mysqlOps->stmt->executeUpdate(sql);
-    if (res > 0)
-        return 1; // SUCCESS
-    else
-        return 0; // FAIL
+    return 1;
+    // string sql = "UPDATE user SET loggin = 0 WHERE user_id = " + to_string(userId) + ";";
+    // cout << "SQL query: " << sql << '\n';
+    // bool res = mysqlOps->stmt->executeUpdate(sql);
+    // if (res > 0)
+    //     return 1; // SUCCESS
+    // else
+    //     return 0; // FAIL
 }
